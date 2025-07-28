@@ -1,36 +1,154 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
-## Getting Started
+# FinQuarius AI – Personal Finance Platform 
 
-First, run the development server:
+A full-stack AI-powered finance management SaaS platform to help users track, analyze, and optimize spending. Includes features like transaction insights, budget alerts, receipt scanning, monthly reports, and AI-powered analysis — all built with **Next.js 15**, **React 19**, **Tailwind**, **Prisma**, and **Shadcn UI**.
+
+---
+
+## Table of Contents
+
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Project Structure](#project-structure)
+- [Live Demo](#live-demo)
+- [Future Improvements](#future-improvements)
+
+---
+
+## Features
+
+<ul>
+  <li>Clerk Authentication (Login/Signup/Profile)</li>
+  <li>Secure & Scalable Postgres DB (via Prisma + Supabase)</li>
+  <li>Modern UI with Tailwind CSS & ShadCN UI</li>
+  <li>Smart Dashboard with Analytics & Graphs</li>
+  <li>Bulk Transactions + Filtering + Sorting</li>
+  <li>Monthly Budget Setup & Alerts via Cron</li>
+  <li>Email Notifications for Budget & Monthly Reports</li>
+  <li>AI Receipt Scanner (Gemini AI)</li>
+  <li>Recurring Transaction Automation (Inngest)</li>
+  <li>Monthly Financial Insights (AI-Powered)</li>
+  <li>Advanced Bot & DDoS Protection (Arcjet)</li>
+</ul>
+
+---
+
+## Tech Stack
+
+### Frontend
+<ul>
+  <li>React 19 – App Framework</li>
+  <li>Next.js 15 – Full Stack Meta Framework</li>
+  <li>Tailwind CSS – Utility-first Styling</li>
+  <li>Shadcn/UI – UI Component Library</li>
+</ul>
+
+### Backend
+<ul>
+  <li>Next.js Server Actions – API Handling</li>
+  <li>Prisma ORM – PostgreSQL Database Access</li>
+  <li>Clerk – Auth & User Management</li>
+  <li>Inngest – Cron Jobs & Background Tasks</li>
+  <li>Arcjet – Bot Protection & Rate Limiting</li>
+  <li>Gemini AI – Smart Receipt Scanner</li>
+</ul>
+
+---
+
+## Installation
+
+### Prerequisites
+<ul>
+<li>Node.js v18+</li>
+<li>PostgreSQL (Supabase / Neon)</li>
+<li>Vercel CLI (Optional)</li>
+</ul>
+
+### Clone the Repository
 
 ```bash
+git clone https://github.com/DHANDEAJAYKUMAR/finquarius-ai.git
+cd finquarius-ai
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Setup Environment
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+Create a `.env` file in the root:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+DATABASE_URL=
+DIRECT_URL=
 
-## Learn More
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=
+CLERK_SECRET_KEY=
+NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
+NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
+NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=/onboarding
+NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/onboarding
 
-To learn more about Next.js, take a look at the following resources:
+GEMINI_API_KEY=
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+RESEND_API_KEY=
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+ARCJET_KEY=
+```
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Usage
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+<ul>
+  <li>Sign up or login with Clerk</li>
+  <li>Create an account and start logging transactions</li>
+  <li>View dashboards, filter data, and visualize stats</li>
+  <li>Use AI tools like receipt scanning and auto-insights</li>
+  <li>Set budget limits and get email alerts</li>
+  <li>Deploy with Vercel for production</li>
+</ul>
+
+---
+
+## Project Structure
+
+```
+├── app/                         → Next.js App Router structure
+│   ├── layout.tsx              → App layout
+│   ├── page.tsx                → Landing Page
+│   ├── dashboard/              → User Dashboard Pages
+│   ├── api/                    → Route Handlers (Server Functions)
+│
+├── lib/                        → DB, utils, constants
+├── components/                 → UI Components (Shadcn-based)
+├── actions/                    → Server Actions / Mutations
+├── inngest/                    → Background Cron Jobs
+├── prisma/                     → DB Models & Seed
+├── public/                     → Static Assets
+├── styles/                     → Global Styles
+├── .env                        → Environment Variables
+├── package.json                → Dependencies & Scripts
+```
+
+---
+
+## Live Demo
+
+<p>Try it Live Here → <a href="https://finquarius-ai.vercel.app/" target="_blank">
+https://finquarius-ai.vercel.app</a></p>
+Demo Video
+→ <a href="https://drive.google.com/file/d/1qtz7_NLHpgq4arLpOgynGy5C0eNu3gB5/view?usp=drive_link" target="_blank">Click to Watch</a>
+---
+
+## Future Improvements
+
+<ul>
+  <li>Income Tax Projection Tool</li>
+  <li>Multi-currency Support</li>
+  <li>AI Investment Recommendation Module</li>
+  <li>PDF Export of Monthly Reports</li>
+  <li>Custom Themes & Dark Mode</li>
+  <li>Voice Expense Logging (AI Voice Bot)</li>
+</ul>
