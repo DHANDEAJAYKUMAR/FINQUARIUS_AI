@@ -68,8 +68,8 @@ A full-stack AI-powered finance management SaaS platform to help users track, an
 
 ### Clone the Repository
 
-```bash
 git clone https://github.com/DHANDEAJAYKUMAR/finquarius-ai.git
+```
 cd finquarius-ai
 npm install
 npm run dev
@@ -140,7 +140,7 @@ ARCJET_KEY=
 https://finquarius-ai.vercel.app</a></p>
 Demo Video
 → <a href="https://drive.google.com/file/d/1qtz7_NLHpgq4arLpOgynGy5C0eNu3gB5/view?usp=drive_link" target="_blank">Click to Watch</a>
----
+
 
 ## Future Improvements
 
