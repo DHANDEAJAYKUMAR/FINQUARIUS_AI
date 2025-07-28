@@ -68,7 +68,7 @@ A full-stack AI-powered finance management SaaS platform to help users track, an
 
 ### Clone the Repository
 
-git clone https://github.com/DHANDEAJAYKUMAR/finquarius-ai.git
+git clone https://github.com/DHANDEAJAYKUMAR/FINQUARIUS_AI.git
 ```
 cd finquarius-ai
 npm install
