@@ -14,61 +14,36 @@ const serializeAmount = (obj) => ({
   amount: obj.amount.toNumber(),
 });
 
+// ---------------- CREATE TRANSACTION ----------------
 
 export async function createTransaction(data) {
   try {
     const { userId } = await auth();
     if (!userId) throw new Error("Unauthorized");
 
-
     const req = await request();
-
-    const decision = await aj.protect(req, {
-      userId,
-      requested: 1, 
-    });
+    const decision = await aj.protect(req, { userId, requested: 1 });
 
     if (decision.isDenied()) {
       if (decision.reason.isRateLimit()) {
-        const { remaining, reset } = decision.reason;
-        console.error({
-          code: "RATE_LIMIT_EXCEEDED",
-          details: {
-            remaining,
-            resetInSeconds: reset,
-          },
-        });
-
-        throw new Error("Too many requests. Please try again later.");
+        throw new Error("Too many requests. Try again later.");
       }
-
       throw new Error("Request blocked");
     }
 
     const user = await db.user.findUnique({
       where: { clerkUserId: userId },
     });
-
-    if (!user) {
-      throw new Error("User not found");
-    }
+    if (!user) throw new Error("User not found");
 
     const account = await db.account.findUnique({
-      where: {
-        id: data.accountId,
-        userId: user.id,
-      },
+      where: { id: data.accountId, userId: user.id },
     });
+    if (!account) throw new Error("Account not found");
 
-    if (!account) {
-      throw new Error("Account not found");
-    }
-
-  
     const balanceChange = data.type === "EXPENSE" ? -data.amount : data.amount;
     const newBalance = account.balance.toNumber() + balanceChange;
 
-   
     const transaction = await db.$transaction(async (tx) => {
       const newTransaction = await tx.transaction.create({
         data: {
@@ -98,6 +73,8 @@ export async function createTransaction(data) {
   }
 }
 
+// ---------------- GET ONE TRANSACTION ----------------
+
 export async function getTransaction(id) {
   const { userId } = await auth();
   if (!userId) throw new Error("Unauthorized");
@@ -105,20 +82,17 @@ export async function getTransaction(id) {
   const user = await db.user.findUnique({
     where: { clerkUserId: userId },
   });
-
   if (!user) throw new Error("User not found");
 
   const transaction = await db.transaction.findUnique({
-    where: {
-      id,
-      userId: user.id,
-    },
+    where: { id, userId: user.id },
   });
-
   if (!transaction) throw new Error("Transaction not found");
 
   return serializeAmount(transaction);
 }
+
+// ---------------- UPDATE TRANSACTION ----------------
 
 export async function updateTransaction(id, data) {
   try {
@@ -128,40 +102,25 @@ export async function updateTransaction(id, data) {
     const user = await db.user.findUnique({
       where: { clerkUserId: userId },
     });
-
     if (!user) throw new Error("User not found");
 
- 
     const originalTransaction = await db.transaction.findUnique({
-      where: {
-        id,
-        userId: user.id,
-      },
-      include: {
-        account: true,
-      },
+      where: { id, userId: user.id },
+      include: { account: true },
     });
-
     if (!originalTransaction) throw new Error("Transaction not found");
 
-
-    const oldBalanceChange =
+    const oldChange =
       originalTransaction.type === "EXPENSE"
         ? -originalTransaction.amount.toNumber()
         : originalTransaction.amount.toNumber();
 
-    const newBalanceChange =
-      data.type === "EXPENSE" ? -data.amount : data.amount;
+    const newChange = data.type === "EXPENSE" ? -data.amount : data.amount;
+    const netBalanceChange = newChange - oldChange;
 
-    const netBalanceChange = newBalanceChange - oldBalanceChange;
-
- 
     const transaction = await db.$transaction(async (tx) => {
       const updated = await tx.transaction.update({
-        where: {
-          id,
-          userId: user.id,
-        },
+        where: { id, userId: user.id },
         data: {
           ...data,
           nextRecurringDate:
@@ -171,14 +130,9 @@ export async function updateTransaction(id, data) {
         },
       });
 
-
       await tx.account.update({
         where: { id: data.accountId },
-        data: {
-          balance: {
-            increment: netBalanceChange,
-          },
-        },
+        data: { balance: { increment: netBalanceChange } },
       });
 
       return updated;
@@ -193,6 +147,7 @@ export async function updateTransaction(id, data) {
   }
 }
 
+// ---------------- GET ALL USER TRANSACTIONS ----------------
 
 export async function getUserTransactions(query = {}) {
   try {
@@ -202,22 +157,12 @@ export async function getUserTransactions(query = {}) {
     const user = await db.user.findUnique({
       where: { clerkUserId: userId },
     });
-
-    if (!user) {
-      throw new Error("User not found");
-    }
+    if (!user) throw new Error("User not found");
 
     const transactions = await db.transaction.findMany({
-      where: {
-        userId: user.id,
-        ...query,
-      },
-      include: {
-        account: true,
-      },
-      orderBy: {
-        date: "desc",
-      },
+      where: { userId: user.id, ...query },
+      include: { account: true },
+      orderBy: { date: "desc" },
     });
 
     return { success: true, data: transactions };
@@ -226,25 +171,19 @@ export async function getUserTransactions(query = {}) {
   }
 }
 
+// ---------------- SCAN RECEIPT (FIXED & SAFE) ----------------
 
 export async function scanReceipt(file) {
   try {
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
- 
     const arrayBuffer = await file.arrayBuffer();
-
     const base64String = Buffer.from(arrayBuffer).toString("base64");
 
     const prompt = `
-      Analyze this receipt image and extract the following information in JSON format:
-      - Total amount (just the number)
-      - Date (in ISO format)
-      - Description or items purchased (brief summary)
-      - Merchant/store name
-      - Suggested category (one of: housing,transportation,groceries,utilities,entertainment,food,shopping,healthcare,education,personal,travel,insurance,gifts,bills,other-expense )
-      
-      Only respond with valid JSON in this exact format:
+      Extract info from the receipt and return ONLY raw JSON (no explanation).
+
+      Format:
       {
         "amount": number,
         "date": "ISO date string",
@@ -253,7 +192,7 @@ export async function scanReceipt(file) {
         "category": "string"
       }
 
-      If its not a recipt, return an empty object
+      If not a receipt return: {}
     `;
 
     const result = await model.generateContent([
@@ -268,27 +207,31 @@ export async function scanReceipt(file) {
 
     const response = await result.response;
     const text = response.text();
-    const cleanedText = text.replace(/```(?:json)?\n?/g, "").trim();
 
-    try {
-      const data = JSON.parse(cleanedText);
-      return {
-        amount: parseFloat(data.amount),
-        date: new Date(data.date),
-        description: data.description,
-        category: data.category,
-        merchantName: data.merchantName,
-      };
-    } catch (parseError) {
-      console.error("Error parsing JSON response:", parseError);
-      throw new Error("Invalid response format from Gemini");
-    }
+    // ---- THE FIX: Extract the first valid JSON block safely ----
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error("Invalid JSON returned");
+
+    const cleaned = jsonMatch[0]
+      .replace(/(\r\n|\n|\t)/g, "")
+      .trim();
+
+    const data = JSON.parse(cleaned);
+
+    return {
+      amount: parseFloat(data.amount) || 0,
+      date: data.date ? new Date(data.date) : null,
+      description: data.description || "",
+      category: data.category || "other-expense",
+      merchantName: data.merchantName || "",
+    };
   } catch (error) {
-    console.error("Error scanning receipt:", error);
+    console.error("Receipt scan error:", error);
     throw new Error("Failed to scan receipt");
   }
 }
 
+// ---------------- HELPER: NEXT RECURRING DATE ----------------
 
 function calculateNextRecurringDate(startDate, interval) {
   const date = new Date(startDate);
